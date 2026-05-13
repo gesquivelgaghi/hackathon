@@ -106,7 +106,7 @@ None. This workstream stands on its own once foundation lands.
 ## Out of scope
 
 - Wiring this into a workflow — that's Workstream B.
-- The consumer's `ui/lighthouserc.cjs` — that's Workstream C.
+- The consumer's `ui/scripts/lighthouserc.cjs` — that's Workstream C.
 - PR comment generation — that's Workstream D.
 - Mobile preset, Pages hosting, MSW path — see plan open questions, not in v1.
 

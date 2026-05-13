@@ -2,6 +2,11 @@ import { ROUTES } from "./libs/routes";
 
 export const IS_DEV_ENV = import.meta.env.DEV;
 export const IS_SELF_HOSTED_ENV = import.meta.env.VITE_SELF_HOSTED_ENV;
+// Audit-mode flag. Only set by `vite ... --mode audit`, which is used by the
+// Lighthouse accessibility run (see scripts/lighthouserc.cjs). Lets the auth
+// guards step out of the way so Lighthouse can actually render the dashboard
+// pages instead of bouncing to /login.
+export const IS_AUDIT_MODE = import.meta.env.VITE_AUDIT_MODE === "true";
 export const API_URL = import.meta.env.VITE_API_URL;
 export const API_URL_OLD = import.meta.env.VITE_API_URL_OLD;
 export const API_URL_DEB_ARCHIVE = import.meta.env.VITE_API_URL_DEB_ARCHIVE;

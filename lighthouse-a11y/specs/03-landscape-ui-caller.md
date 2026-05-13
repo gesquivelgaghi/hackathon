@@ -10,7 +10,7 @@ Make Landscape UI itself a working consumer of the reusable workflow. Prove the 
 
 ## Deliverables
 
-### `ui/lighthouserc.cjs`
+### `ui/scripts/lighthouserc.cjs`
 
 Replace the foundation stub.
 
@@ -112,7 +112,7 @@ jobs:
       mode: annotate                # soak in annotate; see plan open questions
       auth-mode: public
       urls-file: .github/lighthouse/urls.public.txt
-      config-path: ./lighthouserc.cjs
+      config-path: ./scripts/lighthouserc.cjs
       upload-artifact-name: lighthouse-report-pr
       pr-comment: true
 
@@ -125,14 +125,14 @@ jobs:
       auth-mode: ${{ github.event_name == 'schedule' && 'both' || inputs.auth-mode }}
       build-command: pnpm build:e2e
       urls-file: .github/lighthouse/urls.authenticated.txt
-      config-path: ./lighthouserc.cjs
+      config-path: ./scripts/lighthouserc.cjs
       upload-artifact-name: lighthouse-report-thorough
       pr-comment: false
 ```
 
 ## Tests
 
-**Unit — `ui/lighthouserc.test.ts`** (colocated with `ui/lighthouserc.cjs`). Required cases:
+**Unit — `ui/lighthouserc.test.ts`** (colocated with `ui/scripts/lighthouserc.cjs`). Required cases:
 
 - With no `LHCI_*` env vars set, the exported `ci.collect.url` equals exactly the public URL list (3 entries).
 - `LHCI_AUTH_MODE=msw` → `ci.collect.url` equals the authenticated URL list.
@@ -143,7 +143,7 @@ jobs:
 - The Landscape-specific `heading-order: ["warn"]` override is present in `ci.assert.assertions`.
 - Module-load is deterministic — calling the module fresh after env mutation reflects the new env (use `vi.resetModules()` between cases or wrap in `vi.isolateModules`).
 
-Tip: `lighthouserc.cjs` is CommonJS but Vitest can `require()` or dynamic-`import()` it. Use `vi.stubEnv("LHCI_AUTH_MODE", "msw")` + `vi.resetModules()` + `await import("./lighthouserc.cjs")` per case to avoid cross-test contamination.
+Tip: `scripts/lighthouserc.cjs` is CommonJS but Vitest can `require()` or dynamic-`import()` it. Use `vi.stubEnv("LHCI_AUTH_MODE", "msw")` + `vi.resetModules()` + `await import("./scripts/lighthouserc.cjs")` per case to avoid cross-test contamination.
 
 **Integration:** the workflow integration checks in spec 02 cover this caller end-to-end. No additional integration test required here — but verify the local recipe:
 

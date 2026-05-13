@@ -32,7 +32,7 @@ ui/
 │   └── workflows/
 │       ├── lighthouse-a11y.reusable.yml  stub with input declarations only (see 1d)
 │       └── lighthouse-a11y.yml           stub with PR trigger + empty jobs (Workstream C fills)
-└── lighthouserc.cjs                  stub (see 1e)
+└── scripts/lighthouserc.cjs                  stub (see 1e)
 ```
 
 **1a — `audit-sets.cjs`:**
@@ -65,7 +65,7 @@ process.exit(0);
 
 **1d — `lighthouse-a11y.reusable.yml`:** the full `on: workflow_call` block with every input from `specs/02-reusable-workflow.md` declared, but `jobs:` containing only a single no-op job (e.g. `run: echo "not implemented — see specs/02-reusable-workflow.md"`). This lets Workstream C's caller compile-check input names while B is still building the body.
 
-**1e — `ui/lighthouserc.cjs`:**
+**1e — `ui/scripts/lighthouserc.cjs`:**
 
 ```js
 // Stub; see specs/03-landscape-ui-caller.md.
@@ -100,7 +100,7 @@ createBaseConfig({
 
 ### 3. Contract: env vars passed from workflow → config
 
-Workstream B sets these in the LHCI runner step; Workstream C reads them in `ui/lighthouserc.cjs`. Names are locked:
+Workstream B sets these in the LHCI runner step; Workstream C reads them in `ui/scripts/lighthouserc.cjs`. Names are locked:
 
 - `LHCI_WCAG_LEVEL` — `a` | `aa` | `aaa`. Default `aa`.
 - `LHCI_MIN_SCORE` — numeric string or empty.
@@ -116,9 +116,9 @@ Edit `ui/package.json`:
 - Add `"@lhci/cli": "^0.14.0"` to `devDependencies`.
 - Add scripts:
   ```json
-  "a11y:ci":      "lhci autorun --config=./lighthouserc.cjs",
-  "a11y:collect": "lhci collect --config=./lighthouserc.cjs",
-  "a11y:assert":  "lhci assert  --config=./lighthouserc.cjs",
+  "a11y:ci":      "lhci autorun --config=./scripts/lighthouserc.cjs",
+  "a11y:collect": "lhci collect --config=./scripts/lighthouserc.cjs",
+  "a11y:assert":  "lhci assert  --config=./scripts/lighthouserc.cjs",
   "a11y:preview": "vite preview --host 0.0.0.0 --port 4173"
   ```
 - Run `pnpm install` and commit the updated `pnpm-lock.yaml`.
@@ -145,12 +145,12 @@ In `ui/docs/testing/index.md`, add a placeholder under the existing "Read next b
 
 ### 7. Vitest test discovery for the new code paths
 
-The `.cjs` modules added by this initiative live under `ui/.github/lighthouse/` and `ui/lighthouserc.cjs` — outside `src/`. Vitest's existing config (`ui/vitest.config.ts`) won't discover tests there by default.
+The `.cjs` modules added by this initiative live under `ui/.github/lighthouse/` and `ui/scripts/lighthouserc.cjs` — outside `src/`. Vitest's existing config (`ui/vitest.config.ts`) won't discover tests there by default.
 
 Edit `ui/vitest.config.ts`:
 
 - Add `**/.github/lighthouse/**/*.test.{ts,cjs,mjs,js}` and `lighthouserc.test.{ts,cjs,mjs,js}` to the `include` glob (or extend the existing default `include`).
-- Ensure `coverage.include` covers `.github/lighthouse/**/*.cjs` and `lighthouserc.cjs` so the new code counts against the 80/80/80/70 thresholds.
+- Ensure `coverage.include` covers `.github/lighthouse/**/*.cjs` and `scripts/lighthouserc.cjs` so the new code counts against the 80/80/80/70 thresholds.
 - Keep the existing `exclude` list intact.
 
 Verify with a placeholder test:

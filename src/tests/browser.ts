@@ -2,12 +2,22 @@ import {
   API_URL,
   API_URL_DEB_ARCHIVE,
   API_URL_OLD,
+  IS_AUDIT_MODE,
   MSW_ENDPOINTS_TO_INTERCEPT,
 } from "@/constants";
+import { setStoredAuthUser } from "@/features/auth";
 import type { RequestHandler } from "msw";
 import { http, passthrough } from "msw";
 import { setupWorker } from "msw/browser";
+import { authResponse } from "@/tests/mocks/auth";
 import fallbackHandlers from "./server/handlers";
+
+// Audit-mode builds (Lighthouse a11y) need the app to render the actual
+// authenticated pages, not bounce to /login. Seeding the auth user before
+// React mounts gives AuthContext a logged-in starting state.
+if (IS_AUDIT_MODE) {
+  setStoredAuthUser(authResponse);
+}
 
 const handlers: RequestHandler[] = [
   http.all("*", ({ request }) => {

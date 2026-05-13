@@ -15,19 +15,6 @@ jobs:
   lighthouse-a11y:
     name: Lighthouse Accessibility
     runs-on: ubuntu-latest
-    env:
-      # Same-origin relative paths (matching .env.production) so any
-      # background fetches the audited pages make fail fast as 404s instead
-      # of cross-origin CORS errors that slow the run down.
-      VITE_API_URL: /api/v2/
-      VITE_API_URL_OLD: /api/
-      VITE_API_URL_DEB_ARCHIVE: /debarchive/v1beta1/
-      VITE_APP_TITLE: Landscape
-      VITE_REPORT_VIEW_ENABLED: "false"
-      VITE_DETAILED_UPGRADES_VIEW_ENABLED: "false"
-      VITE_SELF_HOSTED_ENV: "false"
-      VITE_APP_VERSION: "0.0.0-lighthouse"
-      VITE_APP_COMMIT: ${{ github.sha }}
 
     steps:
       - name: Checkout
@@ -50,10 +37,7 @@ jobs:
       - name: Install Playwright Chromium (with system libs)
         run: pnpm exec playwright install --with-deps chromium
 
-      - name: Build
-        run: pnpm run build
-
-      - name: Run Lighthouse CI
+      - name: Run Lighthouse CI (builds with --mode audit, serves, audits)
         run: pnpm a11y:ci
 
       - name: Upload Lighthouse reports

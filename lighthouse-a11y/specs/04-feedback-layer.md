@@ -69,7 +69,7 @@ Sections:
    LHCI_AUTH_MODE=public pnpm a11y:ci   # terminal B
    ```
 4. **Interpreting a failure** — read the PR comment, download the `lighthouse-report-pr` artifact, open the HTML report.
-5. **Tuning** — edit `ui/lighthouserc.cjs` to override an audit, change the floor, or add a URL. Reference the override line we already ship for `heading-order`.
+5. **Tuning** — edit `ui/scripts/lighthouserc.cjs` to override an audit, change the floor, or add a URL. Reference the override line we already ship for `heading-order`.
 
 ### `ui/docs/testing/index.md`
 

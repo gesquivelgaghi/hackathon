@@ -4,6 +4,7 @@
 //
 // Run locally with `pnpm a11y:ci`. Run in CI via .github/workflows/lighthouse-a11y.yml.
 
+const { execSync } = require("node:child_process");
 const fs = require("node:fs");
 const path = require("node:path");
 
@@ -27,12 +28,9 @@ if (!process.env.CHROME_PATH) {
 // thus what URL Lighthouse must hit. Read it from the same .env files Vite
 // uses for a production build so local and CI stay in sync.
 function loadViteEnv() {
-  const files = [
-    ".env",
-    ".env.local",
-    ".env.production",
-    ".env.production.local",
-  ];
+  // Mirror Vite's load order for `--mode audit`: later files win, mode-
+  // specific ones override `.env.local`.
+  const files = [".env", ".env.local", ".env.audit", ".env.audit.local"];
   const env = {};
   for (const name of files) {
     const p = path.join(PROJECT_ROOT, name);
@@ -45,22 +43,38 @@ function loadViteEnv() {
   return env;
 }
 
-const rawRootPath = loadViteEnv().VITE_ROOT_PATH || "/";
+// process.env takes precedence over the .env files, matching what Vite itself
+// does at build time. This way a CI step that builds with
+// `VITE_ROOT_PATH=/foo pnpm a11y:ci` audits /foo/* instead of falling back to
+// the file value and hitting the wrong mount point.
+const rawRootPath =
+  process.env.VITE_ROOT_PATH || loadViteEnv().VITE_ROOT_PATH || "/";
 const rootPath =
   rawRootPath === "/" ? "" : rawRootPath.replace(/\/+$/, "");
 
 const PORT = 4173;
 const BASE_URL = `http://127.0.0.1:${PORT}`;
 
-// Public, unauthenticated routes — they don't require an active session, so
-// they render without MSW or API mocks. Override with LIGHTHOUSE_PATHS=
-// "/login,/create-account" if you want a different set.
-const paths = (
-  process.env.LIGHTHOUSE_PATHS ?? "/login,/create-account,/no-access"
-)
-  .split(",")
-  .map((p) => p.trim())
-  .filter(Boolean);
+// Routes to audit. By default we enumerate every page the SPA exposes by
+// importing the live route table via `scripts/list-routes.ts` — adding a new
+// page in the app picks it up automatically, with no workflow edit. Override
+// with LIGHTHOUSE_PATHS="/login,/create-account" to narrow the run (e.g. when
+// iterating on a specific page).
+function discoverPaths() {
+  if (process.env.LIGHTHOUSE_PATHS) {
+    return process.env.LIGHTHOUSE_PATHS.split(",")
+      .map((p) => p.trim())
+      .filter(Boolean);
+  }
+  const outFile = path.join(PROJECT_ROOT, ".lighthouseci", "routes.json");
+  fs.mkdirSync(path.dirname(outFile), { recursive: true });
+  execSync(
+    `pnpm exec tsx ${path.join(__dirname, "list-routes.ts")} ${outFile}`,
+    { cwd: PROJECT_ROOT, stdio: "inherit" },
+  );
+  return JSON.parse(fs.readFileSync(outFile, "utf8"));
+}
+const paths = discoverPaths();
 
 // Score floor: any audited page that drops below this fails the run. Default
 // is "no regression from a perfect score." Tune via LIGHTHOUSE_MIN_SCORE.
@@ -80,7 +94,7 @@ const MIN_SCORE = parseMinScore(process.env.LIGHTHOUSE_MIN_SCORE);
 module.exports = {
   ci: {
     collect: {
-      startServerCommand: `pnpm exec vite preview --host 127.0.0.1 --port ${PORT}`,
+      startServerCommand: `pnpm exec vite preview --mode audit --host 127.0.0.1 --port ${PORT}`,
       startServerReadyPattern: "Local:",
       startServerReadyTimeout: 60000,
       url: paths.map((p) => `${BASE_URL}${rootPath}${p}`),

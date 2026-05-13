@@ -2,4 +2,4 @@
 "landscape-ui": patch
 ---
 
-Wire up `@lhci/cli` to enforce a Lighthouse accessibility floor: the new `pnpm a11y:ci` command runs Lighthouse against the public routes (`/login`, `/create-account`, `/no-access`) and fails when any score drops below the configured threshold (1.0 by default, override with `LIGHTHOUSE_MIN_SCORE`). A GitHub Actions workflow runs the same check on every pull request.
+Wire up `@lhci/cli` to enforce a Lighthouse accessibility floor on every pull request. `pnpm a11y:ci` builds the app in a new `audit` mode (`vite build --mode audit`, configured in `.env.audit`) that bundles MSW for deterministic API responses and switches the auth/feature guards out of the way so Lighthouse can render the real dashboard pages instead of bouncing to `/login`. The list of routes to audit is discovered from `@/libs/routes` by `scripts/list-routes.ts` — adding a new page picks it up automatically. The check fails when any audited route's accessibility score drops below `LIGHTHOUSE_MIN_SCORE` (default `1.0`).
