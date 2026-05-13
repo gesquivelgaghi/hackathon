@@ -152,7 +152,7 @@ describe("build-comment", () => {
   });
 
   describe("all-green manifest", () => {
-    test("each row uses the `—` placeholder, never a stray empty audits cell", () => {
+    test("each row uses the `✓` placeholder, never a stray empty audits cell", () => {
       const out = buildComment({
         resultsDir: FIXTURES,
         manifestFile: "manifest-all-green.json",
@@ -162,7 +162,7 @@ describe("build-comment", () => {
       expect(rows).toHaveLength(3);
       for (const row of rows) {
         expect(row).toContain("🟢");
-        expect(row).toMatch(/\|\s+—\s+\|/);
+        expect(row).toMatch(/\|\s+✓\s+\|/);
       }
       expect(out).not.toContain("failing audits |\n| `");
     });

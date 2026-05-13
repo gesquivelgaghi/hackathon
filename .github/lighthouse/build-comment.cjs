@@ -109,7 +109,7 @@ function renderRow(entry, lhr) {
   const failing = failingAudits(lhr);
   let auditsCell;
   if (failing.length === 0) {
-    auditsCell = "—";
+    auditsCell = "✓";
   } else {
     const shown = failing
       .slice(0, MAX_AUDITS_PER_ROW)

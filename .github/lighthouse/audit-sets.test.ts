@@ -50,9 +50,10 @@ describe("audit-sets", () => {
   test("every assertion value is a [severity, opts] tuple", () => {
     for (const level of ["a", "aa", "aaa"] as const) {
       for (const [auditId, value] of Object.entries(sets[level].assertions)) {
-        expect(Array.isArray(value), `${level}.${auditId} should be a tuple`).toBe(
-          true,
-        );
+        expect(
+          Array.isArray(value),
+          `${level}.${auditId} should be a tuple`,
+        ).toBe(true);
         const tuple = value as unknown[];
         expect(tuple).toHaveLength(2);
         expect(["error", "warn"]).toContain(tuple[0]);

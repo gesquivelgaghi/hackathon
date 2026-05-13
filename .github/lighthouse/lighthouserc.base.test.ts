@@ -115,9 +115,9 @@ describe("createBaseConfig", () => {
   });
 
   test("throws when urls is an empty array", () => {
-    expect(() =>
-      createBaseConfig({ wcagLevel: "aa", urls: [] }),
-    ).toThrow(/non-empty/);
+    expect(() => createBaseConfig({ wcagLevel: "aa", urls: [] })).toThrow(
+      /non-empty/,
+    );
   });
 
   test("throws when urls is undefined", () => {
