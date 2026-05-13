@@ -3,6 +3,30 @@
 
 ---
 
+## 26.10.0.1119-beta
+
+### Minor Changes
+
+- Replace chart.js pie with pure SVG donut, improve accessibility
+- Add mirror package filter options
+- Add mirror packages tab
+
+### Patch Changes
+
+- Land the Lighthouse a11y feedback layer plus component-level a11y coverage. `.github/lighthouse/build-comment.cjs` is now a zero-dependency Node CLI that converts an LHCI `manifest.json` + `lhr-*.json` set into a sticky-PR Markdown table (score emoji, top failing audits with WCAG mapping, optional artifact link); colocated fixtures and tests cover happy paths, banner modes, the artifact-link toggle, missing-manifest safety, and the all-green/many-failing branches. `vitest-axe` is wired into `src/tests/setup.ts` and three new component a11y tests (`Modal`, `SidePanel`, `Sidebar`) assert `toHaveNoViolations` against their rendered DOM. `docs/testing/a11y.md` Lighthouse and Component-level sections are filled in; `.github/lighthouse/README.md` is rewritten as the external-adopter guide.
+- Add accessibility-testing foundation: pin `@lhci/cli`, `@axe-core/playwright`, `vitest-axe`, and `eslint-plugin-jsx-a11y`, scaffold the `.github/lighthouse/` config tree, the `e2e/features/a11y/` and `src/tests/a11y/` directories, the `lighthouse-a11y.{reusable,}.yml` workflow stubs, and the `docs/testing/a11y.md` skeleton. Wires `jsx-a11y` into the ESLint flat config with rules off so Workstream A can enable them without merge conflict. No behavior change yet — downstream workstreams (Lighthouse shared config, reusable workflow, feedback layer, Playwright+axe layer) land on top of this foundation.
+- Show GPG Key in mirrors and publications, unlock publications distribution fields if non-signature-preserving, and lock link type field for publication target
+- Fix API param to remove GPG key. Better options for gpg keys on edit mirror form: users can keep their current key, remove it, or add a new one
+- Fix instances page actions grouping so it doesn't overflow horizontally
+- Include empty Associated Publications table in Publication Targets
+- Add gpg key fingerprint to sources table on repo profiles, fix PUT param empty string replacement
+- Allow selection of more than one architecture when creating a publication
+- Wire up `@lhci/cli` to enforce a Lighthouse accessibility floor on every pull request. `pnpm a11y:ci` builds the app in a new `audit` mode (`vite build --mode audit`, configured in `.env.audit`) that bundles MSW for deterministic API responses and switches the auth/feature guards out of the way so Lighthouse can render the real dashboard pages instead of bouncing to `/login`. The list of routes to audit is discovered from `@/libs/routes` by `scripts/list-routes.ts` — adding a new page picks it up automatically. The check fails when any audited route's accessibility score drops below `LIGHTHOUSE_MIN_SCORE` (default `1.0`).
+- Clear package filter field in add mirror form when preserve signatures is checked
+- Add preserve signatures field to mirror add / edit forms and details view.
+- Fix profiles sidepanels cancel and close behavior to be consistent with new design
+- Keyboard a11y and arrow-key navigation for saved-searches dropdown
+
 ## 26.10.0.1081-beta
 
 ### Minor Changes
