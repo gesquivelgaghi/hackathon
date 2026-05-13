@@ -26,7 +26,7 @@ type CreateBaseConfig = (opts: {
 const baseModule = require("./lighthouserc.base.cjs") as {
   createBaseConfig: CreateBaseConfig;
 };
-const createBaseConfig = baseModule.createBaseConfig;
+const { createBaseConfig } = baseModule;
 
 describe("createBaseConfig", () => {
   test("returns { ci: { collect, assert, upload } } for happy path", () => {
@@ -89,14 +89,15 @@ describe("createBaseConfig", () => {
   });
 
   test("minScore override flows into categories:accessibility floor", () => {
+    const OVERRIDE = 0.5;
     const cfg = createBaseConfig({
       wcagLevel: "aa",
       urls: ["http://x"],
-      minScore: 0.5,
+      minScore: OVERRIDE,
     });
     expect(
-      cfg.ci.assert.assertions["categories:accessibility"][1].minScore,
-    ).toBe(0.5);
+      cfg.ci.assert.assertions["categories:accessibility"]?.[1]?.minScore,
+    ).toBe(OVERRIDE);
   });
 
   test("AA assertions include color-contrast; A assertions do not", () => {
@@ -114,9 +115,9 @@ describe("createBaseConfig", () => {
   });
 
   test("throws when urls is an empty array", () => {
-    expect(() =>
-      createBaseConfig({ wcagLevel: "aa", urls: [] }),
-    ).toThrow(/non-empty/);
+    expect(() => createBaseConfig({ wcagLevel: "aa", urls: [] })).toThrow(
+      /non-empty/,
+    );
   });
 
   test("throws when urls is undefined", () => {

@@ -21,9 +21,12 @@ describe("audit-sets", () => {
   );
 
   test("default floors are 0.85 / 0.90 / 0.95", () => {
-    expect(sets.a.defaultMinScore).toBe(0.85);
-    expect(sets.aa.defaultMinScore).toBe(0.9);
-    expect(sets.aaa.defaultMinScore).toBe(0.95);
+    const FLOOR_A = 0.85;
+    const FLOOR_AA = 0.9;
+    const FLOOR_AAA = 0.95;
+    expect(sets.a.defaultMinScore).toBe(FLOOR_A);
+    expect(sets.aa.defaultMinScore).toBe(FLOOR_AA);
+    expect(sets.aaa.defaultMinScore).toBe(FLOOR_AAA);
   });
 
   test("aa assertion keys are a strict superset of a", () => {
@@ -47,9 +50,10 @@ describe("audit-sets", () => {
   test("every assertion value is a [severity, opts] tuple", () => {
     for (const level of ["a", "aa", "aaa"] as const) {
       for (const [auditId, value] of Object.entries(sets[level].assertions)) {
-        expect(Array.isArray(value), `${level}.${auditId} should be a tuple`).toBe(
-          true,
-        );
+        expect(
+          Array.isArray(value),
+          `${level}.${auditId} should be a tuple`,
+        ).toBe(true);
         const tuple = value as unknown[];
         expect(tuple).toHaveLength(2);
         expect(["error", "warn"]).toContain(tuple[0]);

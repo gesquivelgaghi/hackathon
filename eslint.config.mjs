@@ -49,6 +49,19 @@ export default defineConfig(
     },
   },
 
+  // CommonJS Node scripts (e.g. .github/lighthouse/*.cjs) — declare Node
+  // globals and allow `require()`, which is the whole point of CJS.
+  {
+    files: ["**/*.cjs"],
+    languageOptions: {
+      globals: { ...globals.node },
+      sourceType: "commonjs",
+    },
+    rules: {
+      "@typescript-eslint/no-require-imports": "off",
+    },
+  },
+
   {
     ...reactPlugin.configs.flat.recommended,
     settings: {
