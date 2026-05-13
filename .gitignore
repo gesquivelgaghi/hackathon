@@ -21,6 +21,9 @@ src/**/*.module.scss.d.ts
 # Cache
 .eslintcache
 
+# Claude Code agent runtime state (lockfiles, local settings)
+.claude/
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json

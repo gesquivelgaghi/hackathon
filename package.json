@@ -23,9 +23,9 @@
     "test:report": "pnpm exec playwright show-report",
     "tcm:run": "tcm \"src/**\" --pattern *.module.scss",
     "tcm:watch": "pnpm tcm:run --watch",
-    "a11y:ci": "lhci autorun --config=./lighthouserc.cjs",
-    "a11y:collect": "lhci collect --config=./lighthouserc.cjs",
-    "a11y:assert": "lhci assert --config=./lighthouserc.cjs",
+    "a11y:ci": "lhci autorun --config=./scripts/lighthouserc.cjs",
+    "a11y:collect": "lhci collect --config=./scripts/lighthouserc.cjs",
+    "a11y:assert": "lhci assert --config=./scripts/lighthouserc.cjs",
     "a11y:preview": "vite preview --host 0.0.0.0 --port 4173"
   },
   "dependencies": {

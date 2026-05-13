@@ -7,6 +7,8 @@
 const fs = require("node:fs");
 const path = require("node:path");
 
+const PROJECT_ROOT = path.join(__dirname, "..");
+
 // Point Lighthouse at Playwright's bundled Chromium when no system Chrome
 // install is present. Playwright is already a devDependency, so this works
 // for any contributor who has run `pnpm install`.
@@ -33,7 +35,7 @@ function loadViteEnv() {
   ];
   const env = {};
   for (const name of files) {
-    const p = path.join(__dirname, name);
+    const p = path.join(PROJECT_ROOT, name);
     if (!fs.existsSync(p)) continue;
     for (const line of fs.readFileSync(p, "utf8").split(/\r?\n/)) {
       const m = line.match(/^([A-Z_][A-Z0-9_]*)=(.*)$/);
@@ -62,7 +64,18 @@ const paths = (
 
 // Score floor: any audited page that drops below this fails the run. Default
 // is "no regression from a perfect score." Tune via LIGHTHOUSE_MIN_SCORE.
-const MIN_SCORE = Number(process.env.LIGHTHOUSE_MIN_SCORE ?? 1.0);
+function parseMinScore(raw) {
+  if (raw === undefined || raw === "") return 1.0;
+  const n = Number(raw);
+  if (!Number.isFinite(n) || n < 0 || n > 1) {
+    console.warn(
+      `[lighthouserc] LIGHTHOUSE_MIN_SCORE="${raw}" is not a number in [0, 1]; falling back to 1.0`,
+    );
+    return 1.0;
+  }
+  return n;
+}
+const MIN_SCORE = parseMinScore(process.env.LIGHTHOUSE_MIN_SCORE);
 
 module.exports = {
   ci: {

@@ -2,7 +2,7 @@ name: Lighthouse a11y
 
 on:
   pull_request:
-    branches: [main]
+    branches: [main, "release/**"]
 
 permissions:
   contents: read
@@ -16,11 +16,12 @@ jobs:
     name: Lighthouse Accessibility
     runs-on: ubuntu-latest
     env:
-      # Placeholders so the production build succeeds without secrets — the
-      # a11y audit only needs the public routes to render.
-      VITE_API_URL: https://example.com/api
-      VITE_API_URL_OLD: https://example.com/api-old
-      VITE_API_URL_DEB_ARCHIVE: https://example.com/api-deb
+      # Same-origin relative paths (matching .env.production) so any
+      # background fetches the audited pages make fail fast as 404s instead
+      # of cross-origin CORS errors that slow the run down.
+      VITE_API_URL: /api/v2/
+      VITE_API_URL_OLD: /api/
+      VITE_API_URL_DEB_ARCHIVE: /debarchive/v1beta1/
       VITE_APP_TITLE: Landscape
       VITE_REPORT_VIEW_ENABLED: "false"
       VITE_DETAILED_UPGRADES_VIEW_ENABLED: "false"
