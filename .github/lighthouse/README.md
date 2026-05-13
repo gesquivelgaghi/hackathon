@@ -1,14 +1,25 @@
-# Lighthouse a11y — config & reusable workflow
+# Lighthouse a11y — config, comment, and reusable workflow
 
-This directory ships the shared Lighthouse CI configuration used by `canonical/landscape-ui` and the source for the reusable GitHub Actions workflow that any Canonical project can adopt.
+This directory holds the Lighthouse-accessibility surface used by Landscape UI's CI: the Markdown PR-comment generator, hand-built fixtures for testing it, and a reusable `workflow_call` workflow (plus its shared base config) that other Canonical projects can adopt.
 
-## What this is
+## How Landscape UI uses it today
 
-A `workflow_call` reusable workflow plus a small, dependency-free config library that lets a repo gate its PRs on Lighthouse's accessibility category without re-implementing the audit matrix, the LHCI runner settings, or the sticky-comment generator. Scans run against the **dev server** (not a production build) so authors can iterate on accessibility regressions in the same edit-save loop as the rest of their work. Configuration is caller-driven: WCAG level, score floor, URL list, run mode (block vs. annotate), and auth mode (public / MSW-mocked / both) are all inputs.
+Landscape UI's own PR check is **not** the reusable workflow in this directory. The actual config lives in [`scripts/lighthouserc.cjs`](../../scripts/lighthouserc.cjs) and is invoked inline by [`.github/workflows/lighthouse-a11y.yml`](../workflows/lighthouse-a11y.yml). That config:
 
-## Quick start
+- Builds the SPA in `audit` mode (`vite build --mode audit`) so MSW is bundled and auth guards are bypassed.
+- Auto-discovers routes by importing `@/libs/routes` via [`scripts/list-routes.ts`](../../scripts/list-routes.ts).
+- Asserts `categories:accessibility ≥ LIGHTHOUSE_MIN_SCORE` (default `1.0`).
+- Uploads `.lighthouseci/` as the `lighthouse-a11y-reports` artifact.
 
-In any consumer repo, add a workflow under `.github/workflows/`:
+The workflow then pipes the resulting `manifest.json` + `lhr-*.json` set through [`build-comment.cjs`](build-comment.cjs) and posts the output as a sticky PR comment.
+
+## For external adopters: the reusable workflow
+
+The remaining files (`audit-sets.cjs`, `lighthouserc.base.cjs`, `urls.*.txt`, and the reusable workflow under `../workflows/lighthouse-a11y.reusable.yml`) are an opinionated, parameterised path Canonical projects can adopt with one `uses:` line. They are independent of Landscape UI's own inline runner; the two paths coexist.
+
+### Quick start
+
+In a consumer repo, drop a workflow under `.github/workflows/`:
 
 ```yaml
 name: Lighthouse a11y
@@ -23,36 +34,29 @@ jobs:
     with:
       wcag-level: aa
       mode: annotate
-      auth-mode: public
       urls-file: .github/lighthouse/urls.public.txt
 ```
 
-Provide a `urls.public.txt` listing one path per line (paths starting with `/` are prefixed with the workflow's `serve-url`). That's the minimum viable adoption.
+Add a `urls.public.txt` listing one path per line; that's the minimum viable adoption.
 
-## Full input reference
+### Input reference
 
-The reusable workflow declares every input in [lighthouse-a11y.reusable.yml](../workflows/lighthouse-a11y.reusable.yml); the surface and defaults are owned by [specs/02-reusable-workflow.md](../../lighthouse-a11y/specs/02-reusable-workflow.md). Common inputs:
+Declared at the top of [`../workflows/lighthouse-a11y.reusable.yml`](../workflows/lighthouse-a11y.reusable.yml). Common inputs:
 
-| Input | Type | Default | Notes |
-| --- | --- | --- | --- |
-| `wcag-level` | string | `aa` | `a` / `aa` / `aaa`. |
-| `min-score` | string | `""` | Override the per-level floor. Empty string = use the level default. |
-| `urls-file` | string | `""` | Path (relative to repo root) to a newline-separated URL list. |
-| `urls` | string | `""` | Inline newline-separated URL list. Use this *or* `urls-file`, not both. |
-| `mode` | string | `block` | `block` fails the workflow on assertion violation; `annotate` only comments. |
-| `auth-mode` | string | `public` | `public` / `msw` / `both`. |
-| `config-path` | string | `./lighthouserc.cjs` | Caller's consumer config. |
-| `build-command` | string | `""` | Empty by default — we scan the dev server, so no build step. Set this if your repo prefers `vite preview` over `vite dev`. |
-| `serve-command` | string | `pnpm dev --host 0.0.0.0 --port 5173` | Must serve at `serve-url`. Override if your dev command differs. |
-| `serve-url` | string | `http://localhost:5173` | Base URL paths from `urls-file` are joined against. |
-| `pr-comment` | boolean | `true` | Post the sticky score-table comment back on the PR. |
-| `upload-artifact-name` | string | `lighthouse-report` | Artifact name for the LHCI report bundle. |
+| Input | Default | Notes |
+| --- | --- | --- |
+| `wcag-level` | `aa` | `a` / `aa` / `aaa`. Selects an audit set from `audit-sets.cjs`. |
+| `min-score` | `""` | Empty = use the per-level default (`0.85` / `0.90` / `0.95`). |
+| `urls-file` | `""` | Newline-separated paths; joined against `serve-url`. |
+| `urls` | `""` | Inline newline-separated URL list. Use either `urls` or `urls-file`. |
+| `mode` | `block` | `block` fails on assertion violation; `annotate` only comments. |
+| `config-path` | `./lighthouserc.cjs` | Caller's consumer config (can wrap `createBaseConfig`). |
+| `serve-command` | `pnpm preview --host 0.0.0.0 --port 4173` | Must serve at `serve-url`. |
+| `serve-url` | `http://localhost:4173` | Base URL for relative paths from `urls-file`. |
+| `pr-comment` | `true` | Post the sticky score-table comment. |
+| `upload-artifact-name` | `lighthouse-report` | Artifact name for the LHCI bundle. |
 
-See the spec for the complete input surface and the env-var contract between the workflow and the config.
-
-## Extending the base config
-
-Consumers `require()` the shared base factory and apply repo-specific overrides:
+### Extending the base config
 
 ```js
 const {
@@ -61,40 +65,48 @@ const {
 
 const config = createBaseConfig({
   wcagLevel: process.env.LHCI_WCAG_LEVEL ?? "aa",
-  urls: ["http://localhost:5173/"],
+  urls: ["http://localhost:4173/"],
 });
 
-// Override an audit (e.g. while remediating a known regression):
+// Override an audit while remediating a known regression:
 config.ci.assert.assertions["heading-order"] = ["warn"];
 
 module.exports = config;
 ```
 
-The factory's signature is locked in [specs/00-foundation.md §2](../../lighthouse-a11y/specs/00-foundation.md). It returns the standard LHCI shape with `ci.collect`, `ci.assert`, and `ci.upload` populated.
+Signature is locked in [`lighthouse-a11y/specs/00-foundation.md` §2](../../lighthouse-a11y/specs/00-foundation.md).
 
-## WCAG levels
-
-[audit-sets.cjs](audit-sets.cjs) exports three curated audit matrices. Each entry carries an inline comment with the WCAG success criterion it most closely covers (informational — Lighthouse audits don't map 1:1 to WCAG).
+### WCAG levels (audit-sets.cjs)
 
 | Level | Floor | Coverage |
 | --- | --- | --- |
-| `a` | `0.85` | Document-level basics: `image-alt`, `document-title`, `html-has-lang`, `link-name`, `button-name`, `valid-lang`, `meta-viewport` (warn). |
-| `aa` | `0.90` | All of A plus `color-contrast`, `label`, the ARIA validity audits, `tabindex`, `frame-title`, `bypass`, list-structure audits, and `duplicate-id-aria`. |
-| `aaa` | `0.95` | All of AA plus `target-size`, `focus-traps`, `focusable-controls`, `heading-order`, `skip-link`, `use-landmarks` (all `warn` — these audits are still maturing in Lighthouse). |
+| `a` | `0.85` | Document basics — `image-alt`, `document-title`, `html-has-lang`, `link-name`, `button-name`, `valid-lang`, `meta-viewport` (warn). |
+| `aa` | `0.90` | All of A plus `color-contrast`, `label`, ARIA validity audits, `tabindex`, `frame-title`, `bypass`, list-structure audits, `duplicate-id-aria`. |
+| `aaa` | `0.95` | All of AA plus `target-size`, `focus-traps`, `focusable-controls`, `heading-order`, `skip-link`, `use-landmarks` (all `warn`). |
+
+Each entry in [`audit-sets.cjs`](audit-sets.cjs) carries an inline comment naming the WCAG criterion it most closely covers.
 
 ## Layout
 
-| Path | Purpose |
+| Path | Used by | Purpose |
+| --- | --- | --- |
+| `build-comment.cjs` | Landscape UI workflow | Markdown PR-comment generator. Zero runtime deps; safe on missing manifest. |
+| `__fixtures__/` | `build-comment.test.ts` | Synthetic `manifest-*.json` + `lhr-*.json` for unit tests. |
+| `audit-sets.cjs` | Reusable workflow | WCAG-keyed audit matrices (`a` / `aa` / `aaa`). |
+| `lighthouserc.base.cjs` | Reusable workflow | `createBaseConfig` factory. |
+| `urls.public.txt`, `urls.authenticated.txt` | Reusable workflow | Example URL lists. |
+
+## build-comment.cjs env contract
+
+| Env | Meaning |
 | --- | --- |
-| `audit-sets.cjs` | WCAG-keyed audit matrices (`a` / `aa` / `aaa`). |
-| `lighthouserc.base.cjs` | `createBaseConfig` factory. |
-| `build-comment.cjs` | Markdown PR-comment generator (no runtime deps). |
-| `urls.public.txt` | Unauthenticated URL list used by the PR job. |
-| `urls.authenticated.txt` | Authenticated URL list (v1.1 / MSW auth-mode). |
-| `__fixtures__/` | Synthetic manifests + `lhr-*.json` for `build-comment` tests. |
+| `LHCI_MODE` | `block` or `annotate`. Picks the banner text. Default `annotate`. |
+| `LHCI_ARTIFACT_URL` | URL embedded as the "Full report artifact" link. Omit to suppress. |
+| `LHCI_RESULTS_DIR` | Override the manifest directory (default `./.lighthouseci`). Tests use this. |
+| `LHCI_MANIFEST_FILE` | Override the manifest filename (default `manifest.json`). Tests use this. |
 
 ## Links
 
 - [Lighthouse CI docs](https://github.com/GoogleChrome/lighthouse-ci/tree/main/docs)
 - [Lighthouse accessibility audit reference](https://developer.chrome.com/docs/lighthouse/accessibility)
-- Per-workstream specs: [`../../lighthouse-a11y/`](../../lighthouse-a11y/).
+- Per-workstream specs: [`../../lighthouse-a11y/`](../../lighthouse-a11y/)
