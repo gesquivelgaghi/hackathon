@@ -32,9 +32,7 @@ export function useGetAuthState({ enabled = true }: UseAuthStateOptions = {}) {
     queryKey: ["authUser"],
     queryFn: async () => {
       const token = getStoredAuthToken();
-      const headers = token
-        ? { Authorization: `Bearer ${token}` }
-        : undefined;
+      const headers = token ? { Authorization: `Bearer ${token}` } : undefined;
 
       try {
         const res = await publicFetch.get<AuthStateResponse>("me", { headers });
