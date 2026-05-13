@@ -7,9 +7,7 @@ test.describe("@a11y @self-hosted sidepanel-add", () => {
     authenticatedPage,
   }, testInfo) => {
     await navigateToSidebarLink(authenticatedPage, "Repositories");
-    await authenticatedPage
-      .getByRole("button", { name: "Add mirror" })
-      .click();
+    await authenticatedPage.getByRole("button", { name: "Add mirror" }).click();
     await expect(
       authenticatedPage.getByRole("heading", { name: "Add mirror" }),
     ).toBeVisible();
