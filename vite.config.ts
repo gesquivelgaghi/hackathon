@@ -13,6 +13,9 @@ export default defineConfig(({ mode }) => {
         name: "exclude-msw",
         apply: "build",
         closeBundle() {
+          // Keep the MSW worker in the audit build so the Lighthouse run can
+          // render pages with mocked API data instead of hitting real services.
+          if (mode === "audit") return;
           const mswPath = path.resolve(__dirname, "dist/mockServiceWorker.js");
           if (fs.existsSync(mswPath)) {
             fs.unlinkSync(mswPath);

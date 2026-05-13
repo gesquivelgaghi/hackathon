@@ -20,6 +20,7 @@ export default defineConfig(
       "public",
       "src/**/*.module.scss.d.ts",
       "scripts/*.cjs",
+      "scripts/*.ts",
     ],
   },
 

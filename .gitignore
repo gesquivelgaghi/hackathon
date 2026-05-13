@@ -21,6 +21,12 @@ src/**/*.module.scss.d.ts
 # Cache
 .eslintcache
 
+# Claude Code agent runtime state (lockfiles, local settings)
+.claude/
+
+# Lighthouse CI reports & discovered-route manifest
+.lighthouseci/
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json

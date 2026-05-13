@@ -3,6 +3,7 @@ import { useEffect } from "react";
 import { useLocation, useNavigate } from "react-router";
 import { useQueryClient } from "@tanstack/react-query";
 import useAuth from "@/hooks/useAuth";
+import { IS_AUDIT_MODE } from "@/constants";
 import { ROUTES } from "@/libs/routes";
 import LoadingState from "@/components/layout/LoadingState";
 import Redirecting from "@/components/layout/Redirecting";
@@ -18,6 +19,7 @@ export const AuthGuard: FC<Props> = ({ children }) => {
   const { pathname, search } = useLocation();
 
   useEffect(() => {
+    if (IS_AUDIT_MODE) return;
     if (authLoading) return;
 
     if (!authorized) {
@@ -45,6 +47,7 @@ export const AuthGuard: FC<Props> = ({ children }) => {
     queryClient,
   ]);
 
+  if (IS_AUDIT_MODE) return <>{children}</>;
   if (authLoading) return <LoadingState />;
 
   return authorized && hasAccounts ? <>{children}</> : <Redirecting />;

@@ -2,7 +2,7 @@ import type { FC, ReactNode } from "react";
 import { useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router";
 import useAuth from "@/hooks/useAuth";
-import { HOMEPAGE_PATH } from "@/constants";
+import { HOMEPAGE_PATH, IS_AUDIT_MODE } from "@/constants";
 import LoadingState from "@/components/layout/LoadingState";
 import Redirecting from "@/components/layout/Redirecting";
 
@@ -16,6 +16,7 @@ export const GuestGuard: FC<Props> = ({ children }) => {
   const [searchParams] = useSearchParams();
 
   useEffect(() => {
+    if (IS_AUDIT_MODE) return;
     if (!authorized || authLoading) return;
     if (!hasAccounts) return;
 
@@ -39,6 +40,7 @@ export const GuestGuard: FC<Props> = ({ children }) => {
     safeRedirect,
   ]);
 
+  if (IS_AUDIT_MODE) return <>{children}</>;
   if (authLoading) return <LoadingState />;
 
   return !authorized || !hasAccounts ? <>{children}</> : <Redirecting />;

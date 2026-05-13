@@ -21,7 +21,7 @@ Replace the foundation stub with the full implementation. Input declarations are
 |---|---|---|---|
 | `wcag-level` | string | `aa` | Selects assertion preset (`a` / `aa` / `aaa`). |
 | `min-score` | string | `""` | Override accessibility category floor; empty = derived from level. |
-| `config-path` | string | `./lighthouserc.cjs` | Consumer's LHCI config, expected to extend the base. |
+| `config-path` | string | `./scripts/lighthouserc.cjs` | Consumer's LHCI config, expected to extend the base. |
 | `urls` | string | `""` | Newline-separated URL list (mutually exclusive with `urls-file`). |
 | `urls-file` | string | `""` | Path to JSON/text file with URLs in the consumer repo. |
 | `mode` | string | `block` | `block` or `annotate`. |

@@ -14,7 +14,7 @@ on:
     inputs:
       wcag-level:                  { type: string,  default: aa }
       min-score:                   { type: string,  default: "" }
-      config-path:                 { type: string,  default: "./lighthouserc.cjs" }
+      config-path:                 { type: string,  default: "./scripts/lighthouserc.cjs" }
       urls:                        { type: string,  default: "" }
       urls-file:                   { type: string,  default: "" }
       mode:                        { type: string,  default: block }

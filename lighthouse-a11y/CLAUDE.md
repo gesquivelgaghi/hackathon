@@ -29,7 +29,7 @@ This folder is **planning + specs only**. It contains no executable code. All re
 
 Every workstream ships tests. Specifically:
 
-- Every pure-JS module created or edited under `../ui/.github/lighthouse/` and `../ui/lighthouserc.cjs` gets a colocated Vitest test file.
+- Every pure-JS module created or edited under `../ui/.github/lighthouse/` and `../ui/scripts/lighthouserc.cjs` gets a colocated Vitest test file.
 - The repo's existing coverage thresholds (80% statements/lines/functions, 70% branches; see `../ui/vitest.config.ts`) are the floor. Don't lower them.
 - Cover error paths, not just happy paths — every `throw` and every conditional branch deserves a case.
 - Workflow YAML can't be unit-tested; exercise it on a draft PR. That's the integration test.

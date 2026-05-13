@@ -4,6 +4,7 @@ import { createRoot } from "react-dom/client";
 import * as Sentry from "@sentry/react";
 import {
   APP_VERSION,
+  IS_AUDIT_MODE,
   IS_DEV_ENV,
   IS_MSW_ENABLED,
   ROOT_PATH,
@@ -73,7 +74,9 @@ export const startApp = async ({
     return;
   }
 
-  if (isDevEnv && isMswEnabled) {
+  // Audit-mode builds intentionally bundle MSW so the Lighthouse run can hit
+  // mocked APIs even though it isn't running under `vite dev`.
+  if ((isDevEnv || IS_AUDIT_MODE) && isMswEnabled) {
     const { worker } = await loadWorker();
     await worker.start();
   }
