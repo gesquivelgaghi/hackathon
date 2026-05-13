@@ -1,20 +1,20 @@
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 import { resolve } from "node:path";
 
-type BuildCommentArgs = {
+interface BuildCommentArgs {
   resultsDir: string;
   mode?: string;
   artifactUrl?: string;
   manifestFile?: string;
-};
+}
 
-type BuildCommentModule = {
+interface BuildCommentModule {
   buildComment: (args: BuildCommentArgs) => string;
   WCAG_MAP: Record<string, string>;
   emojiForScore: (score: number) => string;
   banner: (mode?: string) => string;
   main: () => void;
-};
+}
 
 // eslint-disable-next-line @typescript-eslint/no-require-imports
 const mod = require("./build-comment.cjs") as BuildCommentModule;
@@ -38,9 +38,7 @@ describe("build-comment", () => {
         manifestFile: "manifest-mixed.json",
       });
 
-      const rows = out
-        .split("\n")
-        .filter((line) => line.startsWith("| `/"));
+      const rows = out.split("\n").filter((line) => line.startsWith("| `/"));
       expect(rows).toHaveLength(3);
       expect(rows[0]).toContain("`/login`");
       expect(rows[0]).toContain("🟢");
@@ -101,7 +99,9 @@ describe("build-comment", () => {
         manifestFile: "manifest-mixed.json",
         artifactUrl: "https://example/artifact/9",
       });
-      expect(out).toContain("[Full report artifact](https://example/artifact/9)");
+      expect(out).toContain(
+        "[Full report artifact](https://example/artifact/9)",
+      );
     });
 
     test("LHCI_ARTIFACT_URL unset → no broken artifact line", () => {
@@ -158,9 +158,7 @@ describe("build-comment", () => {
         manifestFile: "manifest-all-green.json",
       });
 
-      const rows = out
-        .split("\n")
-        .filter((line) => line.startsWith("| `/"));
+      const rows = out.split("\n").filter((line) => line.startsWith("| `/"));
       expect(rows).toHaveLength(3);
       for (const row of rows) {
         expect(row).toContain("🟢");
